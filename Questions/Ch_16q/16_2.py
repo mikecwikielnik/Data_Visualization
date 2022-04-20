@@ -1,33 +1,56 @@
 import csv
-from datetime import datetime
+from datetime import date, datetime
 from fileinput import filename
 
 from matplotlib import pyplot as plt
 
-filename = 'data/sitka_weather_2018_simple.csv'
-with open(filename) as f:
-    reader = csv.reader(f)
-    header_row = next(reader)
+
+
+def get_weather_data(filename, dates, highs, lows, date_index, high_index, low_index):
+    """Get the highs and lows from a data file. """
+    with open(filename) as f:
+        reader = csv.reader(f)
+        header_row = next(reader)
     
-    # Get dates, and high and low temps from this file.
-    dates, highs, lows = [], [], []
-    for row in reader:
-        current_date = datetime.strptime(row[2], '%Y-%m-%d')
-        high = int(row[5])
-        low = int(row[6])
-        dates.append(current_date)
-        highs.append(high)
-        lows.append(low)
+        # Get dates, and high and low temps from this file.
+        for row in reader:
+            current_date = datetime.strptime(row[date_index], '%Y-%m-%d')
+            try:
+                high = int(row[high_index])
+                low = int(row[low_index])
+            except ValueError:
+                print(f"Missing data for {current_date}")
+            else:
+                dates.append(current_date)
+                highs.append(high)
+                lows.append(low)
+
+# Get weather data for Sitka
+filename = 'data/sitka_weather_2018_simple.csv'        
+dates, highs, lows = [], [], []
+get_weather_data(filename, dates, highs, lows, date_index=2, high_index=5, low_index=6)
         
 # Plot the high and low temperatures
 plt.style.use('seaborn')
 fig, ax = plt.subplots()
-ax.plot(dates, highs, c='green', alpha=0.5)
-ax.plot(dates, lows, c='purple', alpha=0.5)
-plt.fill_between(dates, highs, lows, facecolor='red', alpha=0.1)
+ax.plot(dates, highs, c='green', alpha=0.6)
+ax.plot(dates, lows, c='purple', alpha=0.6)
+plt.fill_between(dates, highs, lows, facecolor='red', alpha=0.15)
+
+# Get weather data for Death Valley
+filename = 'data/death_valley_2018_simple.csv'
+dates, highs, lows = [], [], []
+get_weather_data(filename, dates, highs, lows, date_index=2, high_index=4, low_index=5)
+
+# Add Death Valley data to current plot
+ax.plot(dates, highs, c='green', alpha=0.3)
+ax.plot(dates, lows, c='purple', alpha=0.3)
+plt.fill_between(dates, highs, lows, facecolor='red', alpha=0.05)
 
 # Format plot
-plt.title("Daily high and low temperatures - 2018", fontsize=24)
+title = "Daily high and low temperatures - 2018"
+title += "\nSitka, AK and Death Valley, Ca"
+plt.title(title, fontsize=24)
 plt.xlabel('', fontsize=16)
 fig.autofmt_xdate()
 plt.ylabel("Temperature (F)", fontsize=16)
